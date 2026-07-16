@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
-import type { TUser } from "./user.interface.js";
-const userSchema = new Schema<TUser>(
+import type { IUser } from "./user.interface.js";
+import type { IAuth } from "../auth/auth.interface.js";
+const userSchema = new Schema<IUser | IAuth>(
   {
     username: {
       type: String,
@@ -19,6 +20,11 @@ const userSchema = new Schema<TUser>(
       enum: ["user", "admin", "author"],
       default: "user",
     },
+    status: {
+      type: String,
+      enum: ["active", "blocked"],
+      default: "active",
+    }
   },
   {
     timestamps: true,

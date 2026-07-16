@@ -1,9 +1,9 @@
-import type { TUser } from "./user.interface.js";
+import type { IUser } from "./user.interface.js";
 import { User } from "./user.model.js";
 import bcrypt from "bcryptjs";
 
 
-const createUser = async (payload: TUser) => {
+const createUser = async (payload: IUser) => {
   const { username, email, password, role } = payload;
   const userIsExist = await User.findOne({ email });
   if (userIsExist) {

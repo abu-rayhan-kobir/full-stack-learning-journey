@@ -1,6 +1,7 @@
-export interface TUser {
+export interface IUser {
   username: string;
   email: string;
   password: string;
   role: "user" | "admin" | "author";
+  status: "active" | "blocked";
 }
