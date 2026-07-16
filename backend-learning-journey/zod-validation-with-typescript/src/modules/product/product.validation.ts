@@ -1,10 +1,39 @@
-import {z} from "zod/v3";
-export const createProductValidationSchema = z.object({
-  body: z.object({
-    name: z.string().min(3),
-    price: z.number().positive(),
-    category: z.string().min(3),
-    description: z.string(),
-    stock: z.number().int().nonnegative(),
+import type IProduct from "./product.interface.js";
+import {z} from "zod";
+
+export const createProductValidationSchema: z.ZodType<IProduct> = z.object({
+  name: z.string().trim().nonempty({
+    message: "Product name is required",
+  }).min(3, {
+    message: "Product name must be minimum 3 characters",
+  }).max(100, {
+    message: "Product name cannot exceed 100 characters"
   }),
+  price: z
+    .number().positive({
+      message: "Price cannot be nagetive"
+    }),
+  category: z
+    .string()
+    .trim()
+    .nonempty({
+      message: "Category is required!",
+    })
+    .min(3, {
+      message: "Category must be minimum 3 characters",
+    })
+    .max(100, {
+      message: "Category cannot exceed 100 characters",
+    }),
+  description: z
+    .string()
+    .trim()
+    .nonempty({
+      message: "Description is required!",
+    }),
+  stock: z
+    .number()
+    .nonnegative({
+      message: "Stocke cannot be negative",
+    })
 });

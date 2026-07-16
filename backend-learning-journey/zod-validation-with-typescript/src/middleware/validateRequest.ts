@@ -1,13 +1,19 @@
-import type { AnyZodObject } from "zod/v3";
-import type {Request, Response, NextFunction} from "express";
+import type {Request, Response, NextFunction } from "express";
 
-const validateRequest = (schema: AnyZodObject) => {
-  return async (request: Request, response: Response, next: NextFunction) => {
-    await schema.parseAsync({
-      body: request.body,
-      params: request.params,
-      query: request.query,
-    });
+const validateRequest = (schema: any) => {
+  return (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    const result = schema.safeParse(request.body);
+    if (!result.success) {
+      return response.status(400).json({
+        success: false,
+        message: "Validation failed!",
+        errors: result.error.flatten(),
+      });
+    }
     next();
   }
 };

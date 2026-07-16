@@ -1,7 +1,7 @@
-import type TProduct from "./product.interface.js";
+import type IProduct from "./product.interface.js";
 import mongoose from "mongoose";
 
-const productSchema = new mongoose.Schema<TProduct>(
+const productSchema = new mongoose.Schema<IProduct>(
   {
     name: {
       type: String,
