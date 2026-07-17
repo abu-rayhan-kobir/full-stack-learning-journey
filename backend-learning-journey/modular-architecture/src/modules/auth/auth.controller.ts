@@ -6,15 +6,26 @@ const loginController = async (request: Request, response: Response) => {
   const payload: IAuth = request.body;
   try {
     const result = await authService.authenticatedUser(payload);
-    return response.cookie("refreshToken", result.refreshToken, {
+     response.cookie("refreshToken", result.refreshToken, {
       httpOnly: true,
       secure: false,
       sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24 * 7,
-    }).status(200).json({
-      success: true,
-      data: result,
+    })
+
+    response.cookie("accessToken", result.accessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     });
+
+    return response.status(200).json({
+      success: true, 
+      message: "User successfully loged in!",
+      data: result.data,
+    });
+
   } catch (error) {
     if (error instanceof Error) {
       response.status(500).json({
