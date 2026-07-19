@@ -37,6 +37,31 @@ const loginController = async (request: Request, response: Response) => {
   }
 };
 
+const refreshToken = async(request: Request, response: Response) => {
+  const token = request.cookies.refreshToken as string;
+  try {
+    const result = await authService.refreshToken(token);
+    response.cookie("accessToken", result, {
+      httpOnly: false,
+      sameSite: "none",
+      secure: false,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+    response.status(201).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      response.status(500).json({
+        success: false,
+        message: `Internal server error: ${error.message}`,
+      });
+    }
+  }
+};
+
 export const authController = {
   loginController,
+  refreshToken,
 };
