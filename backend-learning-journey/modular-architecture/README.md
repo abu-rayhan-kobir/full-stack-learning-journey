@@ -1,58 +1,50 @@
 # MODULAR ARCHITECTURE
 How does work access token and refresh token full diagram
 
-                    LOGIN
-                      │
-        Email + Password
-                      │
-                      ▼
-             Password Correct?
-                 │
-          Yes ───┘
-                 │
-                 ▼
-      ┌─────────────────────┐
-      │ Generate AccessToken│
-      │ (15 Minutes)        │
-      └─────────────────────┘
-                 │
-                 ▼
-      ┌─────────────────────┐
-      │ Generate Refresh    │
-      │ Token (30 Days)     │
-      └─────────────────────┘
-                 │
-      ┌──────────┴───────────┐
-      ▼                      ▼
-Access Token           Refresh Token
-(Authorization)     (HttpOnly Cookie)
-      │                      │
-      └──────────┬───────────┘
-                 ▼
-             User Uses App
-                 │
-                 ▼
-      Access Token Expired
-                 │
-                 ▼
- Browser → /refresh-token
-      (Refresh Token)
-                 │
-                 ▼
-      Server Verifies Token
-                 │
-                 ▼
-      Find User in Database
-                 │
-        User Exists?
-           │
-      Yes ─┘
-           │
-           ▼
-Generate New Access Token
-           │
-           ▼
- Return New Access Token
-           │
-           ▼
- Browser Continues Normally
+               LOGIN
+                │
+                ▼
+     Server Creates Tokens
+                │
+      ┌─────────┴─────────┐
+      ▼                   ▼
+ Access Token      Refresh Token
+ (Memory)         (HttpOnly Cookie)
+      │                   │
+      └─────────┬─────────┘
+                ▼
+        GET /profile
+                │
+                ▼
+     Access Token Expired
+                │
+                ▼
+        Server Returns 401
+                │
+                ▼
+ Axios Response Interceptor
+                │
+                ▼
+ POST /auth/refresh-token
+                │
+                ▼
+ Browser Automatically Sends
+ Refresh Token Cookie
+                │
+                ▼
+ Server Verifies Refresh Token
+                │
+                ▼
+ Generates New Access Token
+                │
+                ▼
+ Returns New Access Token
+                │
+                ▼
+ Interceptor Stores New Token
+                │
+                ▼
+ Retries Original Request
+                │
+                ▼
+        User Gets Response
