@@ -1,8 +1,9 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import type { IAuth } from "./auth.interface.js";
 import { authService } from "./auth.service.js";
+import sendResponse from "../../utils/sendResponse.js";
 
-const loginController = async (request: Request, response: Response) => {
+const loginController = async (request: Request, response: Response, next: NextFunction) => {
   const payload: IAuth = request.body;
   try {
     const result = await authService.authenticatedUser(payload);
@@ -20,24 +21,21 @@ const loginController = async (request: Request, response: Response) => {
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
-    return response.status(200).json({
-      success: true, 
+    sendResponse(response, {
+      success: true,
+      statusCode: 200,
       message: "User successfully loged in!",
-      data: result.data,
+      data: result,
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof Error) {
-      response.status(500).json({
-        success: false,
-        message: "Invalid username or password!",
-        errorMessage: `Something went wrong: ${error.message}`,
-      });
+      next(error);
     }
   }
 };
 
-const refreshToken = async(request: Request, response: Response) => {
+const refreshToken = async(request: Request, response: Response, next: NextFunction) => {
   const token = request.cookies.refreshToken as string;
   try {
     const result = await authService.refreshToken(token);
@@ -47,16 +45,14 @@ const refreshToken = async(request: Request, response: Response) => {
       secure: false,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
-    response.status(201).json({
+    sendResponse(response, {
       success: true,
+      statusCode: 200,
       data: result,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof Error) {
-      response.status(500).json({
-        success: false,
-        message: `Internal server error: ${error.message}`,
-      });
+      next(error);
     }
   }
 };

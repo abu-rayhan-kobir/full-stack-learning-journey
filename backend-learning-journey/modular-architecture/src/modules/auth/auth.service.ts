@@ -1,11 +1,12 @@
 import bcrypt from "bcryptjs";
 import { User } from "../user/user.model.js";
 import jwt, { type JwtPayload, type SignOptions } from "jsonwebtoken";
-import type { StringValue } from "ms";
 import type { IAuth } from "./auth.interface.js";
 import type { IUser } from "../user/user.interface.js";
 import { env } from "../../config/env.js";
+import generateToken from "../../utils/generatToken.js";
 
+// User authentication
 const authenticatedUser = async (payload: IAuth) => {
   const { email, password } = payload;
   const userInstance: IUser | null = await User.findOne({ email });
@@ -25,26 +26,23 @@ const authenticatedUser = async (payload: IAuth) => {
     role: userInstance.role,
     status: userInstance.status,
   };
+
   if (!env.access_token_secret) {
     throw new Error("Access token secret is not defined!");
   }
   if (!env.refresh_token_secret) {
     throw new Error("Refresh token secret is not defined!");
   }
-  const options: SignOptions[] = [
-    {
-      expiresIn: env.access_token_expires as StringValue,
-    },
-    {
-      expiresIn: env.refresh_token_expires as StringValue,
-    },
-  ];
-  const accessToken = jwt.sign(jwtPayload, env.access_token_secret, options[0]);
-  const refreshToken = jwt.sign(
-    jwtPayload,
-    env.refresh_token_secret,
-    options[1],
-  );
+  if (!env.access_token_expires) {
+    throw new Error("Access token expires is not defined!");
+  }
+  if (!env.refresh_token_expires) {
+    throw new Error("Refresh token expires is not defined!");
+  }
+
+  const accessToken = generateToken(jwtPayload, env.access_token_secret, env.access_token_expires as SignOptions);
+  const refreshToken = generateToken(jwtPayload, env.refresh_token_secret, env.refresh_token_expires as SignOptions);
+
   return {
     data: {
       ...jwtPayload,
@@ -54,34 +52,42 @@ const authenticatedUser = async (payload: IAuth) => {
   };
 };
 
+
+// Crating access token through refresh token
 const refreshToken = async (refreshToken: string) => {
   if (!refreshToken) {
     throw new Error("Invalid refresh token!");
   }
   try {
+    if(!env.refresh_token_secret) {
+      throw new Error("Refresh token secret is not defined!");
+    }
+
+    // Verity refresh token
     const verifyToken = jwt.verify(
       refreshToken,
       env.refresh_token_secret as string,
     ) as JwtPayload;
+
     const userEmail = verifyToken.email;
     const user = await User.findOne({ email: userEmail });
     if (!user) {
       throw new Error("User not found!");
     }
+
+    // Creating payload for access token
     const jwtPayload = {
-      username: user.username,
+      username: user?.username,
       email: user?.email,
       role: user?.role,
       status: user?.status,
-    };
-    const option: SignOptions = {
-      expiresIn: env.access_token_expires as StringValue,
-    };
-    const accessToken = jwt.sign(
-      jwtPayload,
-      env.access_token_secret as string,
-      option,
-    );
+    } as JwtPayload;
+    if (!env.access_token_secret) {
+      throw new Error("Access token secret is not defined!");
+    }
+
+    // Creating access token
+    const accessToken = generateToken(jwtPayload, env.access_token_secret, env.access_token_expires as SignOptions )
     return accessToken;
   } catch (error) {
     throw new Error("Invalid token!");

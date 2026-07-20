@@ -1,7 +1,6 @@
 import { Schema, model } from "mongoose";
 import type { IUser } from "./user.interface.js";
-import type { IAuth } from "../auth/auth.interface.js";
-const userSchema = new Schema<IUser | IAuth>(
+const userSchema = new Schema<IUser>(
   {
     username: {
       type: String,
