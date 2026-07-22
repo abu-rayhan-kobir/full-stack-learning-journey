@@ -1,10 +1,10 @@
 import multer from "multer";
-import type { FileFilterCallback } from "multer";
+import type { FileFilterCallback, StorageEngine } from "multer";
 import type {Request} from "express";
 
 
-const storage = multer.diskStorage({
-  destination: (
+const storage: StorageEngine = multer.diskStorage({
+  destination:(
     request: Request,
     file: Express.Multer.File,
     callback
